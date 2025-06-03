@@ -10,6 +10,19 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
 
+logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png"  # Nama file logo hasil upload terbaru
+
+col1, col2 = st.columns([1, 7])
+with col1:
+    st.image(logo_path, width=90)
+with col2:
+    st.markdown(
+        "<div style='display:flex; align-items:center; height:90px;'>"
+        "<span style='font-size:2.15em; font-weight:800; color:#0A3871; line-height:1.13; font-family:Montserrat,Arial,sans-serif;'>"
+        "Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest"
+        "</span></div>",
+        unsafe_allow_html=True
+    )
 
 st.markdown("""
 <style>
@@ -75,25 +88,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png"  # Nama file logo hasil upload terbaru
-
-col1, col2 = st.columns([1, 7])
-with col1:
-    st.image(logo_path, width=90)
-with col2:
-    st.markdown(
-        "<div style='display:flex; align-items:center; height:90px;'>"
-        "<span style='font-size:2.15em; font-weight:800; color:#0A3871; line-height:1.13; font-family:Montserrat,Arial,sans-serif;'>"
-        "Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest"
-        "</span></div>",
-        unsafe_allow_html=True
-    )
-
 st.markdown(f"""
 <div class="identitas-card">
-    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;               : <span>Sarmida Uli Sinaga</span><br>
-    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                 : <span>211402071</span><br>
-    <b>Program Studi</b> : <span>Teknologi Informasi</span><br>
+    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>Sarmida Uli Sinaga</span><br>
+    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>211402071</span><br>
+    <b>Program Studi</b>: <span>Teknologi Informasi</span><br>
     <b>Universitas Sumatera Utara</b>
 </div>
 """, unsafe_allow_html=True)
