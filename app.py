@@ -379,10 +379,10 @@ if uploaded_file:
     )
     train_btn = st.button("Train ulang dengan fitur terpilih", key="train_button")
     
-    if train_btn:
-    if not selected_features or len(selected_features) == 0:
+        if train_btn:
+        if not selected_features or len(selected_features) == 0:
         st.warning("Pilih minimal satu fitur untuk training ulang.")
-    else:
+        else:
         # --- SCALING ULANG pada fitur terpilih ---
         X_train_sel = X_train[selected_features].copy()
         X_test_sel = X_test[selected_features].copy()
