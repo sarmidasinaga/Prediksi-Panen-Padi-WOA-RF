@@ -65,6 +65,24 @@ st.markdown("""
     box-shadow: 0 4px 22px 0 rgba(10,56,113,0.09);
     font-size:1.08em;
 }
+.identitas-grid {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    row-gap: 4px;
+    align-items: start;
+}
+.identitas-label {
+    color: #143665;
+    letter-spacing: 0.01em;
+    font-weight: 600;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1em;
+}
+.identitas-value {
+    color: #212d4e;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1em;
+}
 .identitas-card b {
     color: #143665;
     letter-spacing: 0.01em;
@@ -90,12 +108,15 @@ st.markdown("""
 
 st.markdown(f"""
 <div class="identitas-card">
-    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>Sarmida Uli Sinaga</span><br>
-    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>211402071</span><br>
-    <b>Program Studi</b>: <span>Teknologi Informasi</span><br>
-    <b>Universitas Sumatera Utara</b>
+    <div class="identitas-grid">
+        <div class="identitas-label"><b>Nama</b></div><div class="identitas-value">: Sarmida Uli Sinaga</div>
+        <div class="identitas-label"><b>NIM</b></div><div class="identitas-value">: 211402071</div>
+        <div class="identitas-label"><b>Program Studi</b></div><div class="identitas-value">: Teknologi Informasi</div>
+        <div class="identitas-label"><b>Universitas Sumatera Utara</b></div><div class="identitas-value"></div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 st.markdown("""
 <div class="petunjuk-card">
@@ -372,5 +393,5 @@ if uploaded_file:
 # --- Tentang & Referensi ---
 st.markdown("""
 ---
-<b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
+<b>Tentang:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
 """, unsafe_allow_html=True)
