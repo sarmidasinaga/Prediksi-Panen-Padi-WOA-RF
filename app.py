@@ -115,10 +115,10 @@ st.markdown("""
         <div class="identitas-value">: Sarmida Uli Sinaga</div>
         <div class="identitas-label">NIM</div>
         <div class="identitas-value">: 211402071</div>
-        <div class="identitas-label">Program Studi</div>
+        <div class="identitas-label">Program Studi</div> </br>
         <div class="identitas-value">: Teknologi Informasi</div>
-        <div class="identitas-label">Universitas Sumatera Utara</div>
-        <div class="identitas-value"></div>
+        <div class="identitas-label">Fasilkom-TI, </div>
+        <div class="identitas-value">Universitas Sumatera Utara</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
