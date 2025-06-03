@@ -10,8 +10,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
 
-# ===== Logo dan Judul =====
-logo_path = "logo usu.png"  # ganti sesuai nama file logo di project
 
 st.markdown("""
 <style>
@@ -77,16 +75,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Layout logo & judul pakai Streamlit columns, bukan HTML <img src>
+logo_path = "logo usu.png"  # nama file logo yang kamu upload
+
 col_logo, col_title = st.columns([1, 7])
 with col_logo:
-    st.image("logo usu.png", width=90, output_format="PNG", caption="", use_column_width=False)
+    st.image(logo_path, width=90, output_format="PNG", caption="", use_column_width=False)
 with col_title:
     st.markdown("""
     <h1 style='margin-bottom:0.2em; font-size:2.2em; color:#0A3871'>
         Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest
     </h1>
     """, unsafe_allow_html=True)
+
 
 st.markdown(f"""
 <div class="identitas-card">
