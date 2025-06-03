@@ -9,10 +9,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
-import streamlit as st
 
 # ===== Logo dan Judul =====
-logo_path = "logo usu.png"  # path hasil upload kamu
+logo_path = "logo usu.png"  # ganti sesuai nama file logo di project
 
 st.markdown("""
 <style>
@@ -339,24 +338,18 @@ if uploaded_file:
     plt.xlabel("Index (sample)")
     plt.ylabel("Hasil Panen/ton")
     st.pyplot(fig6)
-    # Ambil index data test pada dataframe asli (pastikan X_test punya index dari df asli)
+
+    # --- Hasil Prediksi Tabel Lengkap (dengan Tahun & Bulan) ---
     test_idx = X_test.index
-
-    # Gabungkan kolom dari df asli yang relevan (misal: Tahun, Bulan, dll)
-    kolom_tambahan = ['Tahun', 'Bulan']  # Tambahkan 'ID' atau kolom lain jika ada di df
-
-    # Pastikan kolom tersebut ada di df asli
+    kolom_tambahan = ['Tahun', 'Bulan']
     kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
-
     df_pred_test = pd.DataFrame({
         **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
         'Actual': y_test.values,
         'Predicted': y_test_pred
     }, index=y_test.index)
-
     st.write("### Hasil Prediksi pada Data Test Set")
     st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
-
     csv_pred = df_pred_test.to_csv(index=False).encode()
     st.download_button(
         label="Download hasil prediksi test (CSV)",
@@ -364,7 +357,14 @@ if uploaded_file:
         file_name="hasil_prediksi_test.csv",
         mime='text/csv'
     )
-    # --- Tentang & Referensi ---
-    st.markdown("""
-    ---
-    <b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
+
+# --- Tentang & Referensi ---
+st.markdown("""
+---
+<b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
+
+<b>Referensi Utama:</b><br>
+- Mirjalili, S., & Lewis, A. (2016). The Whale Optimization Algorithm. Advances in Engineering Software, 95, 51–67.<br>
+- Scikit-Learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.<br>
+- <a href="https://docs.streamlit.io/" target="_blank">Streamlit Documentation</a>
+""", unsafe_allow_html=True)
