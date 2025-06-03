@@ -67,22 +67,24 @@ st.markdown("""
 }
 .identitas-grid {
     display: grid;
-    grid-template-columns: 190px 1fr;
-    row-gap: 4px;
+    grid-template-columns: 180px 1fr;
+    row-gap: 6px;
     align-items: start;
 }
 .identitas-label {
-    color: #143665;
-    letter-spacing: 0.01em;
-    font-weight: 600;
     font-family: 'Montserrat', Arial, sans-serif;
-    font-size: 1em;
+    color: #143665;
+    font-size: 1.09em;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 .identitas-value {
-    color: #212d4e;
     font-family: 'Montserrat', Arial, sans-serif;
-    font-size: 1em;
+    color: #212d4e;
+    font-size: 1.09em;
+    font-weight: 400;
 }
+
 .identitas-card b {
     color: #143665;
     letter-spacing: 0.01em;
@@ -106,16 +108,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(f"""
+st.markdown("""
 <div class="identitas-card">
     <div class="identitas-grid">
-        <div class="identitas-label"><b>Nama</b></div><div class="identitas-value">: Sarmida Uli Sinaga</div>
-        <div class="identitas-label"><b>NIM</b></div><div class="identitas-value">: 211402071</div>
-        <div class="identitas-label"><b>Program Studi</b></div><div class="identitas-value">: Teknologi Informasi</div>
-        <div class="identitas-label"><b>Universitas Sumatera Utara</b></div><div class="identitas-value"></div>
+        <div class="identitas-label">Nama</div>
+        <div class="identitas-value">: Sarmida Uli Sinaga</div>
+        <div class="identitas-label">NIM</div>
+        <div class="identitas-value">: 211402071</div>
+        <div class="identitas-label">Program Studi</div>
+        <div class="identitas-value">: Teknologi Informasi</div>
+        <div class="identitas-label">Universitas Sumatera Utara</div>
+        <div class="identitas-value"></div>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 st.markdown("""
@@ -126,7 +133,6 @@ st.markdown("""
         <li>Pilih parameter jika diperlukan.</li>
         <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
     </ul>
-    <b>Kontak:</b> <span style="color:#2574A9;">sarmidauli@usu.ac.id</span>
 </div>
 """, unsafe_allow_html=True)
 
