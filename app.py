@@ -9,15 +9,50 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
+import streamlit as st
 
-# --- Tampilan Logo dan Header ---
-# st.image("logo.png", width=120)  # Uncomment jika ingin pakai logo kampus
-st.title('Sistem Prediksi Hasil Panen dengan Whale Optimization + Random Forest')
+# ===== Logo dan Judul =====
+logo_path = "df31e687-7369-4da9-9681-2bbbe9cd3e49.png"  # path hasil upload kamu
+
+col1, col2 = st.columns([1, 7])
+with col1:
+    st.image(logo_path, width=90)
+with col2:
+    st.markdown("""
+    <h1 style='margin-bottom:0.2em; font-size:2.2em; color:#0A3871'>
+        Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest
+    </h1>
+    """, unsafe_allow_html=True)
+
+# ===== Identitas Mahasiswa =====
 st.markdown("""
-<div style="background-color:#ecf0f1;padding:10px;border-radius:8px">
-<b>Petunjuk:</b> Upload file CSV Anda dengan format yang sesuai (<a href="template_data.csv" download>download template</a>).
-Pilih parameter jika diperlukan. Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.<br>
-<b>Kontak:</b> emailanda@kampus.ac.id | Nama Mahasiswa - [Nama Kampus]
+<div style='
+    background: linear-gradient(90deg, #e6eafc 60%, #d0e0f5 100%);
+    border-radius: 12px; 
+    padding: 15px 25px 10px 25px; 
+    margin-top: 0px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 18px 0 rgba(10,56,113,0.07);
+'>
+    <span style='font-size:1.1em; color:#1C3879; font-weight:bold'>
+        Nama&nbsp;&nbsp;&nbsp;&nbsp;: <span style='font-weight:normal'>Sarmida Uli Sinaga</span><br>
+        NIM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span style='font-weight:normal'>211402071</span><br>
+        Program Studi : <span style='font-weight:normal'>Teknologi Informasi</span><br>
+        Universitas Sumatera Utara
+    </span>
+</div>
+""", unsafe_allow_html=True)
+
+# ===== Petunjuk dan Kontak =====
+st.markdown("""
+<div style="background-color:#f5f6fa;padding:17px 25px;border-radius:10px;margin-bottom:15px; color:#343947">
+    <b>Petunjuk:</b> 
+    <ul style="margin-top:2px;margin-bottom:8px">
+      <li>Upload file <b>CSV</b> Anda dengan format yang sesuai (<a href="#" style="color:#2574A9;font-weight:500;text-decoration:underline">download template</a>).</li>
+      <li>Pilih parameter jika diperlukan.</li>
+      <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
+    </ul>
+    <b>Kontak:</b> <span style="color:#2574A9">sarmidasinaga@students.usu.ac.id/span> 
 </div>
 """, unsafe_allow_html=True)
 
