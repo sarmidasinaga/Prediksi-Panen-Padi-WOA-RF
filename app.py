@@ -308,6 +308,47 @@ if uploaded_file:
     st.write("#### Feature Importance")
     st.dataframe(feat_imp)
 
+    # --- Feature Selection Berdasarkan Importance ---
+st.markdown("#### Pilih Fitur untuk Training Ulang Model")
+fitur_default = list(feat_imp['feature'])  # Default semua fitur terpakai
+selected_features = st.multiselect(
+    "Pilih fitur yang ingin digunakan untuk training ulang:",
+    options=list(feat_imp['feature']),
+    default=fitur_default
+)
+
+if selected_features and len(selected_features) > 0:
+    X_train_selected = X_train[selected_features]
+    X_test_selected = X_test[selected_features]
+    # Training ulang model (pakai parameter best yang sudah diperoleh)
+    rf_selected = RandomForestRegressor(
+        n_estimators=int(best_params[0]),
+        max_depth=int(best_params[1]),
+        min_samples_split=int(best_params[2]),
+        min_samples_leaf=int(best_params[3]),
+        max_features=best_params[4],
+        random_state=42, n_jobs=-1
+    )
+    rf_selected.fit(X_train_selected, y_train)
+    y_test_pred_selected = rf_selected.predict(X_test_selected)
+    sel_metrics = calculate_metrics(y_test, y_test_pred_selected)
+    st.info(f"Hasil training ulang dengan fitur terpilih ({len(selected_features)} fitur):")
+    st.write(sel_metrics)
+    # Tampilkan line chart hasil prediksi model baru
+    st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih)")
+    df_line_sel = pd.DataFrame({
+        "Actual": y_test.values,
+        "Predicted": y_test_pred_selected
+    }).reset_index(drop=True)
+    fig_sel, ax_sel = plt.subplots(figsize=(10,4))
+    ax_sel.plot(df_line_sel['Actual'].values, label='Actual', marker='o')
+    ax_sel.plot(df_line_sel['Predicted'].values, label='Predicted', marker='o')
+    ax_sel.set_xlabel("Index Data Test")
+    ax_sel.set_ylabel("Hasil Panen/ton")
+    ax_sel.legend()
+    st.pyplot(fig_sel)
+
+
     # --- Tabel Evaluasi Metrik ---
     st.write("#### Tabel Ringkasan Metrik")
     eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
@@ -341,6 +382,17 @@ if uploaded_file:
     st.pyplot(fig6)
 
     # --- Hasil Prediksi Tabel Lengkap (dengan Tahun & Bulan) ---
+    # Line chart Actual vs Predicted pada Data Test
+    st.write("#### Line Chart: Predicted vs Actual (Test Set)")
+    df_line = df_pred_test.reset_index(drop=True)
+    fig_line, ax_line = plt.subplots(figsize=(10,4))
+    ax_line.plot(df_line['Actual'].values, label='Actual', marker='o')
+    ax_line.plot(df_line['Predicted'].values, label='Predicted', marker='o')
+    ax_line.set_xlabel("Index Data Test")
+    ax_line.set_ylabel("Hasil Panen/ton")
+    ax_line.legend()
+    st.pyplot(fig_line)
+
     test_idx = X_test.index
     kolom_tambahan = ['Tahun', 'Bulan']
     kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
