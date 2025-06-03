@@ -353,89 +353,90 @@ if uploaded_file:
     
     # --- Feature Selection Berdasarkan Importance ---
     st.markdown("## Pilih Fitur untuk Training Ulang Model")
-    fitur_default = list(feat_imp['feature'])
-    selected_features = st.multiselect(
-        "Pilih fitur yang ingin digunakan untuk training ulang:",
-        options=fitur_default,
-        default=fitur_default
+fitur_default = list(feat_imp['feature'])
+selected_features = st.multiselect(
+    "Pilih fitur yang ingin digunakan untuk training ulang:",
+    options=fitur_default,
+    default=fitur_default
+)
+
+train_btn = st.button("Train ulang dengan fitur terpilih")
+
+if train_btn and selected_features and len(selected_features) > 0:
+    # --- Ambil kolom Tahun dan Bulan (untuk hasil prediksi test) ---
+    test_idx = X_test.index
+    kolom_tambahan = ['Tahun', 'Bulan']  # Tambah kolom ID kalau ada
+    kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
+
+    # --- Preprocessing ulang pada fitur terpilih saja ---
+    X_train_sel = X_train[selected_features].copy()
+    X_test_sel = X_test[selected_features].copy()
+    scaler_sel = StandardScaler()
+    X_train_sel_scaled = scaler_sel.fit_transform(X_train_sel)
+    X_test_sel_scaled = scaler_sel.transform(X_test_sel)
+
+    # --- Training ulang model dengan fitur terpilih ---
+    rf_sel = RandomForestRegressor(
+        n_estimators=int(best_params[0]),
+        max_depth=int(best_params[1]),
+        min_samples_split=int(best_params[2]),
+        min_samples_leaf=int(best_params[3]),
+        max_features=min(len(selected_features), best_params[4]) if isinstance(best_params[4], (int, float)) else best_params[4],
+        random_state=42, n_jobs=-1
     )
-    
-    if selected_features and len(selected_features) > 0:
-        # === Preprocessing ulang: hanya untuk fitur terpilih ===
-        # Ambil kolom Tahun dan Bulan juga untuk hasil prediksi test
-        test_idx = X_test.index
-        kolom_tambahan = ['Tahun', 'Bulan']  # Tambah kolom ID kalau ada
-        kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
-    
-        # Data X_train/X_test dengan selected_features
-        X_train_sel = X_train[selected_features].copy()
-        X_test_sel = X_test[selected_features].copy()
-        scaler_sel = StandardScaler()
-        X_train_sel_scaled = scaler_sel.fit_transform(X_train_sel)
-        X_test_sel_scaled = scaler_sel.transform(X_test_sel)
-    
-        # --- Training ulang model dengan fitur terpilih ---
-        rf_sel = RandomForestRegressor(
-            n_estimators=int(best_params[0]),
-            max_depth=int(best_params[1]),
-            min_samples_split=int(best_params[2]),
-            min_samples_leaf=int(best_params[3]),
-            max_features=min(len(selected_features), best_params[4]) if isinstance(best_params[4], (int, float)) else best_params[4],
-            random_state=42, n_jobs=-1
-        )
-        rf_sel.fit(X_train_sel_scaled, y_train)
-    
-        # --- Evaluasi ---
-        y_train_pred_sel = rf_sel.predict(X_train_sel_scaled)
-        y_test_pred_sel = rf_sel.predict(X_test_sel_scaled)
-        train_metrics_sel = calculate_metrics(y_train, y_train_pred_sel)
-        test_metrics_sel = calculate_metrics(y_test, y_test_pred_sel)
-    
-        # --- Tabel prediksi lengkap (tahun & bulan) ---
-        df_pred_test_sel = pd.DataFrame({
-            **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
-            'Actual': y_test.values,
-            'Predicted': y_test_pred_sel
-        }, index=y_test.index)
-        st.write("### Hasil Prediksi pada Data Test Set (Fitur Terpilih)")
-        st.dataframe(df_pred_test_sel.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
-    
-        # --- Download hasil prediksi (opsional) ---
-        csv_pred_sel = df_pred_test_sel.to_csv(index=False).encode()
-        st.download_button(
-            label="Download hasil prediksi test (fitur terpilih) (CSV)",
-            data=csv_pred_sel,
-            file_name="hasil_prediksi_test_fitur_terpilih.csv",
-            mime='text/csv'
-        )
-    
-        # --- Metrics train & test ---
-        st.write("### Tabel Ringkasan Metrik (Model Fitur Terpilih)")
-        eval_table_sel = pd.DataFrame([train_metrics_sel, test_metrics_sel], index=['Train', 'Test'])
-        st.table(eval_table_sel)
-    
-        # --- Line chart hasil training ulang ---
-        st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih)")
-        df_line_sel = pd.DataFrame({
-            "Actual": y_test.values,
-            "Predicted": y_test_pred_sel
-        }).reset_index(drop=True)
-        fig_sel, ax_sel = plt.subplots(figsize=(10,4))
-        ax_sel.plot(df_line_sel['Actual'].values, label='Actual', marker='o')
-        ax_sel.plot(df_line_sel['Predicted'].values, label='Predicted', marker='o')
-        ax_sel.set_xlabel("Index Data Test")
-        ax_sel.set_ylabel("Hasil Panen/ton")
-        ax_sel.legend()
-        st.pyplot(fig_sel)
-    
-        # --- Perbandingan dengan model utama (opsional: tampilkan side by side) ---
-        st.markdown("---")
-        st.markdown("### 📊 **Perbandingan Metrik**")
-        st.write("**Model Utama (semua fitur):**")
-        eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
-        st.table(eval_table)
-        st.write("**Model Fitur Terpilih:**")
-        st.table(eval_table_sel)
+    rf_sel.fit(X_train_sel_scaled, y_train)
+
+    # --- Evaluasi ---
+    y_train_pred_sel = rf_sel.predict(X_train_sel_scaled)
+    y_test_pred_sel = rf_sel.predict(X_test_sel_scaled)
+    train_metrics_sel = calculate_metrics(y_train, y_train_pred_sel)
+    test_metrics_sel = calculate_metrics(y_test, y_test_pred_sel)
+
+    # --- Tabel prediksi lengkap (tahun & bulan) ---
+    df_pred_test_sel = pd.DataFrame({
+        **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
+        'Actual': y_test.values,
+        'Predicted': y_test_pred_sel
+    }, index=y_test.index)
+    st.write("### Hasil Prediksi pada Data Test Set (Fitur Terpilih)")
+    st.dataframe(df_pred_test_sel.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
+
+    # --- Download hasil prediksi (opsional) ---
+    csv_pred_sel = df_pred_test_sel.to_csv(index=False).encode()
+    st.download_button(
+        label="Download hasil prediksi test (fitur terpilih) (CSV)",
+        data=csv_pred_sel,
+        file_name="hasil_prediksi_test_fitur_terpilih.csv",
+        mime='text/csv'
+    )
+
+    # --- Metrics train & test ---
+    st.write("### Tabel Ringkasan Metrik (Model Fitur Terpilih)")
+    eval_table_sel = pd.DataFrame([train_metrics_sel, test_metrics_sel], index=['Train', 'Test'])
+    st.table(eval_table_sel)
+
+    # --- Line chart hasil training ulang ---
+    st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih)")
+    df_line_sel = pd.DataFrame({
+        "Actual": y_test.values,
+        "Predicted": y_test_pred_sel
+    }).reset_index(drop=True)
+    fig_sel, ax_sel = plt.subplots(figsize=(10,4))
+    ax_sel.plot(df_line_sel['Actual'].values, label='Actual', marker='o')
+    ax_sel.plot(df_line_sel['Predicted'].values, label='Predicted', marker='o')
+    ax_sel.set_xlabel("Index Data Test")
+    ax_sel.set_ylabel("Hasil Panen/ton")
+    ax_sel.legend()
+    st.pyplot(fig_sel)
+
+    # --- Perbandingan dengan model utama ---
+    st.markdown("---")
+    st.markdown("### 📊 **Perbandingan Metrik**")
+    st.write("**Model Utama (semua fitur):**")
+    eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
+    st.table(eval_table)
+    st.write("**Model Fitur Terpilih:**")
+    st.table(eval_table_sel)
 
 
 
