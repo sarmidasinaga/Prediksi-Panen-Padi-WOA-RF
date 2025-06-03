@@ -352,7 +352,7 @@ if uploaded_file:
     st.pyplot(fig_line)
     
     # --- Feature Selection Berdasarkan Importance ---
-        st.markdown("## Pilih Fitur untuk Training Ulang Model")
+    st.markdown("## Pilih Fitur untuk Training Ulang Model")
     fitur_default = list(feat_imp['feature'])
     selected_features = st.multiselect(
         "Pilih fitur yang ingin digunakan untuk training ulang:",
