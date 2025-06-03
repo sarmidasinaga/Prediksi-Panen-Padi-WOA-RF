@@ -116,8 +116,7 @@ st.markdown("""
         <div class="identitas-label">NIM</div>
         <div class="identitas-value">: 211402071</div>
         <div class="identitas-label">Program Studi</div>
-        <div class="identitas-value">: Teknologi Informasi</div> </br>
-        </br><div class="identitas-label">Fasilkom-TI, </div>
+        <div class="identitas-value">: Teknologi Informasi</div>
         <div class="identitas-label">Universitas Sumatera Utara</div>
     </div>
 </div>
