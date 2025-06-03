@@ -339,32 +339,32 @@ if uploaded_file:
     plt.xlabel("Index (sample)")
     plt.ylabel("Hasil Panen/ton")
     st.pyplot(fig6)
-# Ambil index data test pada dataframe asli (pastikan X_test punya index dari df asli)
-test_idx = X_test.index
+    # Ambil index data test pada dataframe asli (pastikan X_test punya index dari df asli)
+    test_idx = X_test.index
 
-# Gabungkan kolom dari df asli yang relevan (misal: Tahun, Bulan, dll)
-kolom_tambahan = ['Tahun', 'Bulan']  # Tambahkan 'ID' atau kolom lain jika ada di df
+    # Gabungkan kolom dari df asli yang relevan (misal: Tahun, Bulan, dll)
+    kolom_tambahan = ['Tahun', 'Bulan']  # Tambahkan 'ID' atau kolom lain jika ada di df
 
-# Pastikan kolom tersebut ada di df asli
-kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
+    # Pastikan kolom tersebut ada di df asli
+    kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
 
-df_pred_test = pd.DataFrame({
-    **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
-    'Actual': y_test.values,
-    'Predicted': y_test_pred
-}, index=y_test.index)
+    df_pred_test = pd.DataFrame({
+        **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
+        'Actual': y_test.values,
+        'Predicted': y_test_pred
+    }, index=y_test.index)
 
-st.write("### Hasil Prediksi pada Data Test Set")
-st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
+    st.write("### Hasil Prediksi pada Data Test Set")
+    st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
 
-csv_pred = df_pred_test.to_csv(index=False).encode()
-st.download_button(
-    label="Download hasil prediksi test (CSV)",
-    data=csv_pred,
-    file_name="hasil_prediksi_test.csv",
-    mime='text/csv'
-)
-# --- Tentang & Referensi ---
-st.markdown("""
----
-<b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
+    csv_pred = df_pred_test.to_csv(index=False).encode()
+    st.download_button(
+        label="Download hasil prediksi test (CSV)",
+        data=csv_pred,
+        file_name="hasil_prediksi_test.csv",
+        mime='text/csv'
+    )
+    # --- Tentang & Referensi ---
+    st.markdown("""
+    ---
+    <b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
