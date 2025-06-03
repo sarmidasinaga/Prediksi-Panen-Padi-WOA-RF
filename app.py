@@ -363,9 +363,4 @@ if uploaded_file:
 st.markdown("""
 ---
 <b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
-
-<b>Referensi Utama:</b><br>
-- Mirjalili, S., & Lewis, A. (2016). The Whale Optimization Algorithm. Advances in Engineering Software, 95, 51–67.<br>
-- Scikit-Learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.<br>
-- <a href="https://docs.streamlit.io/" target="_blank">Streamlit Documentation</a>
 """, unsafe_allow_html=True)
