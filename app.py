@@ -10,7 +10,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
 
-logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png"  # Nama file logo hasil upload terbaru
+logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png" # Nama file logo hasil upload terbaru
 
 col1, col2 = st.columns([1, 7])
 with col1:
@@ -379,149 +379,119 @@ if uploaded_file:
     )
     train_btn = st.button("Train ulang dengan fitur terpilih", key="train_button")
     
-        if train_btn:
+    if train_btn:
         if not selected_features or len(selected_features) == 0:
-        st.warning("Pilih minimal satu fitur untuk training ulang.")
+            st.warning("Pilih minimal satu fitur untuk training ulang.")
         else:
-        # --- SCALING ULANG pada fitur terpilih ---
-        X_train_sel = X_train[selected_features].copy()
-        X_test_sel = X_test[selected_features].copy()
-        scaler_sel = StandardScaler()
-        X_train_sel_scaled = scaler_sel.fit_transform(X_train_sel)
-        X_test_sel_scaled = scaler_sel.transform(X_test_sel)
+            # --- SCALING ULANG pada fitur terpilih ---
+            X_train_sel = X_train[selected_features].copy()
+            X_test_sel = X_test[selected_features].copy()
+            scaler_sel = StandardScaler()
+            X_train_sel_scaled = scaler_sel.fit_transform(X_train_sel)
+            X_test_sel_scaled = scaler_sel.transform(X_test_sel)
 
-        # --- RUN ULANG WOA UNTUK PARAMETER FITUR BARU ---
-        st.info("Optimasi ulang hyperparameter (WOA) pada fitur terpilih...")
-        with st.spinner('WOA & training model berjalan untuk fitur baru...'):
-            def rf_objective_function_sel(params):
-                n_estimators = int(params[0])
-                max_depth = int(params[1]) if params[1] > 0 else None
-                min_samples_split = int(params[2])
-                min_samples_leaf = int(params[3])
-                max_features = params[4]
-                rf = RandomForestRegressor(
-                    n_estimators=n_estimators,
-                    max_depth=max_depth,
-                    min_samples_split=min_samples_split,
-                    min_samples_leaf=min_samples_leaf,
-                    max_features=max_features,
-                    random_state=42, n_jobs=-1
+            # --- RUN ULANG WOA UNTUK PARAMETER FITUR BARU ---
+            st.info("Optimasi ulang hyperparameter (WOA) pada fitur terpilih...")
+            with st.spinner('WOA & training model berjalan untuk fitur baru...'):
+                def rf_objective_function_sel(params):
+                    n_estimators = int(params[0])
+                    max_depth = int(params[1]) if params[1] > 0 else None
+                    min_samples_split = int(params[2])
+                    min_samples_leaf = int(params[3])
+                    max_features = params[4]
+                    rf = RandomForestRegressor(
+                        n_estimators=n_estimators,
+                        max_depth=max_depth,
+                        min_samples_split=min_samples_split,
+                        min_samples_leaf=min_samples_leaf,
+                        max_features=max_features,
+                        random_state=42, n_jobs=-1
+                    )
+                    scores = cross_val_score(rf, X_train_sel_scaled, y_train, cv=3, scoring='neg_mean_squared_error')
+                    return -scores.mean()
+                bounds = [
+                    (n_estimators_range[0], n_estimators_range[1]),   # n_estimators
+                    (max_depth_range[0], max_depth_range[1]),         # max_depth
+                    (2, 10),                                          # min_samples_split
+                    (1, 5),                                           # min_samples_leaf
+                    (0.3, 1.0)                                        # max_features
+                ]
+                woa_sel = WhaleOptimization(
+                    n_whales=int(n_whales),
+                    n_iterations=int(n_iter),
+                    bounds=bounds,
+                    objective_function=rf_objective_function_sel
                 )
-                scores = cross_val_score(rf, X_train_sel_scaled, y_train, cv=3, scoring='neg_mean_squared_error')
-                return -scores.mean()
-            bounds = [
-                (n_estimators_range[0], n_estimators_range[1]),   # n_estimators
-                (max_depth_range[0], max_depth_range[1]),         # max_depth
-                (2, 10),                                          # min_samples_split
-                (1, 5),                                           # min_samples_leaf
-                (0.3, 1.0)                                        # max_features
-            ]
-            woa_sel = WhaleOptimization(
-                n_whales=int(n_whales),
-                n_iterations=int(n_iter),
-                bounds=bounds,
-                objective_function=rf_objective_function_sel
+                best_params_sel, best_fitness_sel, fitness_history_sel = woa_sel.optimize()
+                st.success(
+                    f"Best params (fitur terpilih): n_estimators={int(best_params_sel[0])}, max_depth={int(best_params_sel[1])}, "
+                    f"min_samples_split={int(best_params_sel[2])}, min_samples_leaf={int(best_params_sel[3])}, "
+                    f"max_features={best_params_sel[4]:.2f} (MSE: {best_fitness_sel:.2f})"
+                )
+                # Grafik konvergensi WOA (fitur terpilih)
+                st.write("##### Grafik Konvergensi Whale Optimization (Fitur Terpilih)")
+                fig_conv, ax_conv = plt.subplots()
+                ax_conv.plot(fitness_history_sel, marker='o')
+                ax_conv.set_xlabel("Iterasi")
+                ax_conv.set_ylabel("Best MSE")
+                st.pyplot(fig_conv)
+
+            # --- TRAIN RF dengan parameter hasil WOA (fitur terpilih) ---
+            rf_sel = RandomForestRegressor(
+                n_estimators=int(best_params_sel[0]),
+                max_depth=int(best_params_sel[1]),
+                min_samples_split=int(best_params_sel[2]),
+                min_samples_leaf=int(best_params_sel[3]),
+                max_features=best_params_sel[4],
+                random_state=42, n_jobs=-1
             )
-            best_params_sel, best_fitness_sel, fitness_history_sel = woa_sel.optimize()
-            st.success(
-                f"Best params (fitur terpilih): n_estimators={int(best_params_sel[0])}, max_depth={int(best_params_sel[1])}, "
-                f"min_samples_split={int(best_params_sel[2])}, min_samples_leaf={int(best_params_sel[3])}, "
-                f"max_features={best_params_sel[4]:.2f} (MSE: {best_fitness_sel:.2f})"
+            rf_sel.fit(X_train_sel_scaled, y_train)
+
+            # --- EVALUASI ---
+            y_train_pred_sel = rf_sel.predict(X_train_sel_scaled)
+            y_test_pred_sel = rf_sel.predict(X_test_sel_scaled)
+            train_metrics_sel = calculate_metrics(y_train, y_train_pred_sel)
+            test_metrics_sel = calculate_metrics(y_test, y_test_pred_sel)
+
+            # --- TABEL prediksi lengkap (tahun & bulan) ---
+            test_idx = X_test.index
+            kolom_tambahan = ['Tahun', 'Bulan']
+            kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
+            df_pred_test_sel = pd.DataFrame({
+                **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
+                'Actual': y_test.values,
+                'Predicted': y_test_pred_sel
+            }, index=y_test.index)
+            st.write("### Hasil Prediksi pada Data Test Set (Fitur Terpilih, WOA ulang)")
+            st.dataframe(df_pred_test_sel.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
+
+            # --- Download hasil prediksi (opsional) ---
+            csv_pred_sel = df_pred_test_sel.to_csv(index=False).encode()
+            st.download_button(
+                label="Download hasil prediksi test (fitur terpilih, WOA ulang) (CSV)",
+                data=csv_pred_sel,
+                file_name="hasil_prediksi_test_fitur_terpilih.csv",
+                mime='text/csv'
             )
-            # Grafik konvergensi WOA (fitur terpilih)
-            st.write("##### Grafik Konvergensi Whale Optimization (Fitur Terpilih)")
-            fig_conv, ax_conv = plt.subplots()
-            ax_conv.plot(fitness_history_sel, marker='o')
-            ax_conv.set_xlabel("Iterasi")
-            ax_conv.set_ylabel("Best MSE")
-            st.pyplot(fig_conv)
 
-        # --- TRAIN RF dengan parameter hasil WOA (fitur terpilih) ---
-        rf_sel = RandomForestRegressor(
-            n_estimators=int(best_params_sel[0]),
-            max_depth=int(best_params_sel[1]),
-            min_samples_split=int(best_params_sel[2]),
-            min_samples_leaf=int(best_params_sel[3]),
-            max_features=best_params_sel[4],
-            random_state=42, n_jobs=-1
-        )
-        rf_sel.fit(X_train_sel_scaled, y_train)
+            # --- Metrics train & test ---
+            st.write("### Tabel Ringkasan Metrik (Model Fitur Terpilih, WOA ulang)")
+            eval_table_sel = pd.DataFrame([train_metrics_sel, test_metrics_sel], index=['Train', 'Test'])
+            st.table(eval_table_sel)
 
-        # --- EVALUASI ---
-        y_train_pred_sel = rf_sel.predict(X_train_sel_scaled)
-        y_test_pred_sel = rf_sel.predict(X_test_sel_scaled)
-        train_metrics_sel = calculate_metrics(y_train, y_train_pred_sel)
-        test_metrics_sel = calculate_metrics(y_test, y_test_pred_sel)
-
-        # --- TABEL prediksi lengkap (tahun & bulan) ---
-        test_idx = X_test.index
-        kolom_tambahan = ['Tahun', 'Bulan']
-        kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
-        df_pred_test_sel = pd.DataFrame({
-            **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
-            'Actual': y_test.values,
-            'Predicted': y_test_pred_sel
-        }, index=y_test.index)
-        st.write("### Hasil Prediksi pada Data Test Set (Fitur Terpilih, WOA ulang)")
-        st.dataframe(df_pred_test_sel.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
-
-        # --- Download hasil prediksi (opsional) ---
-        csv_pred_sel = df_pred_test_sel.to_csv(index=False).encode()
-        st.download_button(
-            label="Download hasil prediksi test (fitur terpilih, WOA ulang) (CSV)",
-            data=csv_pred_sel,
-            file_name="hasil_prediksi_test_fitur_terpilih.csv",
-            mime='text/csv'
-        )
-
-        # --- Metrics train & test ---
-        st.write("### Tabel Ringkasan Metrik (Model Fitur Terpilih, WOA ulang)")
-        eval_table_sel = pd.DataFrame([train_metrics_sel, test_metrics_sel], index=['Train', 'Test'])
-        st.table(eval_table_sel)
-
-        # --- Line chart hasil training ulang ---
-        st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih, WOA ulang)")
-        df_line_sel = pd.DataFrame({
-            "Actual": y_test.values,
-            "Predicted": y_test_pred_sel
-        }).reset_index(drop=True)
-        fig_sel, ax_sel = plt.subplots(figsize=(10,4))
-        ax_sel.plot(df_line_sel['Actual'].values, label='Actual', marker='o')
-        ax_sel.plot(df_line_sel['Predicted'].values, label='Predicted', marker='o')
-        ax_sel.set_xlabel("Index Data Test")
-        ax_sel.set_ylabel("Hasil Panen/ton")
-        ax_sel.legend()
-        st.pyplot(fig_sel)
-
-        # # --- Perbandingan dengan model utama ---
-        # st.markdown("---")
-        # st.markdown("### 📊 **Perbandingan Metrik**")
-        # st.write("**Model Utama (semua fitur):**")
-        # eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
-        # st.table(eval_table)
-        # st.write("**Model Fitur Terpilih (WOA ulang):**")
-        # st.table(eval_table_sel)
-
-
-
-
-    # test_idx = X_test.index
-    # kolom_tambahan = ['Tahun', 'Bulan']
-    # kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
-    # df_pred_test = pd.DataFrame({
-    #     **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
-    #     'Actual': y_test.values,
-    #     'Predicted': y_test_pred
-    # }, index=y_test.index)
-    # st.write("### Hasil Prediksi pada Data Test Set")
-    # st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
-    # csv_pred = df_pred_test.to_csv(index=False).encode()
-    # st.download_button(
-    #     label="Download hasil prediksi test (CSV)",
-    #     data=csv_pred,
-    #     file_name="hasil_prediksi_test.csv",
-    #     mime='text/csv'
-    # )
+            # --- Line chart hasil training ulang ---
+            st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih, WOA ulang)")
+            df_line_sel = pd.DataFrame({
+                "Actual": y_test.values,
+                "Predicted": y_test_pred_sel
+            }).reset_index(drop=True)
+            fig_sel, ax_sel = plt.subplots(figsize=(10,4))
+            ax_sel.plot(df_line_sel['Actual'].values, label='Actual', marker='o')
+            ax_sel.plot(df_line_sel['Predicted'].values, label='Predicted', marker='o')
+            ax_sel.set_xlabel("Index Data Test")
+            ax_sel.set_ylabel("Hasil Panen/ton")
+            ax_sel.legend()
+            st.pyplot(fig_sel)
 
 # --- Tentang & Referensi ---
 st.markdown("""
