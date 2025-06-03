@@ -75,20 +75,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-logo_path = "logo usu.png"  # nama file logo yang kamu upload
+logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png"  # Nama file logo hasil upload terbaru
 
-col_logo, col_title = st.columns([1, 7])
-with col_logo:
-    st.write("")  # Spacer, ulangi kalau mau logo makin turun
-    st.image("logo usu.png", width=90)
-with col_title:
-    st.markdown("""
-    <h1 style='margin-bottom:0.2em; margin-top:0.3em; font-size:2.2em; color:#0A3871'>
-        Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest
-    </h1>
-    """, unsafe_allow_html=True)
-
-
+col1, col2 = st.columns([1, 7])
+with col1:
+    st.image(logo_path, width=90)
+with col2:
+    st.markdown(
+        "<div style='display:flex; align-items:center; height:90px;'>"
+        "<span style='font-size:2.15em; font-weight:800; color:#0A3871; line-height:1.13; font-family:Montserrat,Arial,sans-serif;'>"
+        "Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest"
+        "</span></div>",
+        unsafe_allow_html=True
+    )
 
 st.markdown(f"""
 <div class="identitas-card">
