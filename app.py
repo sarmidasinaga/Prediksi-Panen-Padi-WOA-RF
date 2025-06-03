@@ -364,10 +364,7 @@ st.download_button(
     file_name="hasil_prediksi_test.csv",
     mime='text/csv'
 )
-
-
-    # --- Tentang & Referensi ---
-    st.markdown("""
-    ---
-    <b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
-    
+# --- Tentang & Referensi ---
+st.markdown("""
+---
+<b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
