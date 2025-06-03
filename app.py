@@ -12,7 +12,7 @@ import io
 import streamlit as st
 
 # ===== Logo dan Judul =====
-logo_path = "logo_usu.png"  # path hasil upload kamu
+logo_path = "logo usu.png"  # path hasil upload kamu
 
 col1, col2 = st.columns([1, 7])
 with col1:
@@ -35,8 +35,8 @@ st.markdown("""
     box-shadow: 0 4px 18px 0 rgba(10,56,113,0.07);
 '>
     <span style='font-size:1.1em; color:#1C3879; font-weight:bold'>
-        Nama&nbsp;&nbsp;&nbsp;&nbsp;: <span style='font-weight:normal'>Sarmida Uli Sinaga</span><br>
-        NIM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span style='font-weight:normal'>211402071</span><br>
+        Nama&nbsp;&nbsp;&nbsp;&nbsp; : <span style='font-weight:normal'>Sarmida Uli Sinaga</span><br>
+        NIM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span style='font-weight:normal'>211402071</span><br>
         Program Studi : <span style='font-weight:normal'>Teknologi Informasi</span><br>
         Universitas Sumatera Utara
     </span>
@@ -52,7 +52,7 @@ st.markdown("""
       <li>Pilih parameter jika diperlukan.</li>
       <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
     </ul>
-    <b>Kontak:</b> <span style="color:#2574A9">sarmidasinaga@students.usu.ac.id/span> 
+    <b>Kontak:</b> <span style="color:#2574A9">sarmidasinaga@students.usu.ac.id
 </div>
 """, unsafe_allow_html=True)
 
