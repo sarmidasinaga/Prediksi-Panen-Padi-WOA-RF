@@ -288,29 +288,72 @@ if uploaded_file:
         ax2.set_ylabel("Best MSE")
         st.pyplot(fig2)
 
-    # --- Training dan Evaluasi Model Akhir ---
-    final_rf = RandomForestRegressor(
-        n_estimators=int(best_params[0]),
-        max_depth=int(best_params[1]),
-        min_samples_split=int(best_params[2]),
-        min_samples_leaf=int(best_params[3]),
-        max_features=best_params[4],
-        random_state=42, n_jobs=-1
-    )
-    final_rf.fit(X_train_scaled, y_train)
-    y_train_pred = final_rf.predict(X_train_scaled)
-    y_test_pred = final_rf.predict(X_test_scaled)
-    train_metrics = calculate_metrics(y_train, y_train_pred)
-    test_metrics = calculate_metrics(y_test, y_test_pred)
+    # --- Training dan Evaluasi Model Akhir (Default/All Features) ---
+final_rf = RandomForestRegressor(
+    n_estimators=int(best_params[0]),
+    max_depth=int(best_params[1]),
+    min_samples_split=int(best_params[2]),
+    min_samples_leaf=int(best_params[3]),
+    max_features=best_params[4],
+    random_state=42, n_jobs=-1
+)
+final_rf.fit(X_train_scaled, y_train)
+y_train_pred = final_rf.predict(X_train_scaled)
+y_test_pred = final_rf.predict(X_test_scaled)
+train_metrics = calculate_metrics(y_train, y_train_pred)
+test_metrics = calculate_metrics(y_test, y_test_pred)
 
-    # --- Feature Importance ---
-    feat_imp = pd.DataFrame({'feature': X.columns, 'importance': final_rf.feature_importances_}).sort_values('importance', ascending=False)
-    st.write("#### Feature Importance")
-    st.dataframe(feat_imp)
+# --- Feature Importance ---
+feat_imp = pd.DataFrame({'feature': X.columns, 'importance': final_rf.feature_importances_}).sort_values('importance', ascending=False)
+st.write("#### Feature Importance")
+st.dataframe(feat_imp)
 
-    # --- Feature Selection Berdasarkan Importance ---
+# --- Tabel Ringkasan Metrik (Model Utama) ---
+st.write("#### Tabel Ringkasan Metrik (Model Utama)")
+eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
+st.table(eval_table)
+
+# --- Residual Plot (Model Utama) ---
+st.write("#### Residual Plot (Test Set, Model Utama)")
+fig4, ax4 = plt.subplots()
+residuals = y_test - y_test_pred
+sns.scatterplot(x=range(len(residuals)), y=residuals, ax=ax4)
+ax4.axhline(0, color='r', linestyle='--')
+ax4.set_ylabel("Residual")
+st.pyplot(fig4)
+
+# --- Scatter Actual vs Predicted (Model Utama) ---
+st.write("#### Scatter Actual vs Predicted (Test Set, Model Utama)")
+fig5, ax5 = plt.subplots()
+ax5.scatter(y_test, y_test_pred, color='teal')
+ax5.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+ax5.set_xlabel("Actual")
+ax5.set_ylabel("Predicted")
+st.pyplot(fig5)
+
+# --- Bar Chart: Actual vs Predicted (Model Utama) ---
+st.write("#### Grafik Bar: Prediksi vs Aktual (Test Set, Model Utama)")
+df_pred = pd.DataFrame({'Actual': y_test.values, 'Predicted': y_test_pred})
+fig6, ax6 = plt.subplots()
+df_pred.head(30).plot(kind='bar', ax=ax6)
+plt.xlabel("Index (sample)")
+plt.ylabel("Hasil Panen/ton")
+st.pyplot(fig6)
+
+# --- Line Chart: Actual vs Predicted (Model Utama) ---
+st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Utama)")
+df_line = pd.DataFrame({'Actual': y_test.values, 'Predicted': y_test_pred}).reset_index(drop=True)
+fig_line, ax_line = plt.subplots(figsize=(10,4))
+ax_line.plot(df_line['Actual'].values, label='Actual', marker='o')
+ax_line.plot(df_line['Predicted'].values, label='Predicted', marker='o')
+ax_line.set_xlabel("Index Data Test")
+ax_line.set_ylabel("Hasil Panen/ton")
+ax_line.legend()
+st.pyplot(fig_line)
+
+# --- Feature Selection Berdasarkan Importance ---
 st.markdown("#### Pilih Fitur untuk Training Ulang Model")
-fitur_default = list(feat_imp['feature'])  # Default semua fitur terpakai
+fitur_default = list(feat_imp['feature'])  # Semua fitur default
 selected_features = st.multiselect(
     "Pilih fitur yang ingin digunakan untuk training ulang:",
     options=list(feat_imp['feature']),
@@ -318,9 +361,14 @@ selected_features = st.multiselect(
 )
 
 if selected_features and len(selected_features) > 0:
+    # --- Preprocessing ulang: scaling hanya pada fitur terpilih ---
     X_train_selected = X_train[selected_features]
     X_test_selected = X_test[selected_features]
-    # Training ulang model (pakai parameter best yang sudah diperoleh)
+    scaler_sel = StandardScaler()
+    X_train_selected_scaled = scaler_sel.fit_transform(X_train_selected)
+    X_test_selected_scaled = scaler_sel.transform(X_test_selected)
+
+    # --- Training ulang model dengan fitur terpilih ---
     rf_selected = RandomForestRegressor(
         n_estimators=int(best_params[0]),
         max_depth=int(best_params[1]),
@@ -329,12 +377,15 @@ if selected_features and len(selected_features) > 0:
         max_features=best_params[4],
         random_state=42, n_jobs=-1
     )
-    rf_selected.fit(X_train_selected, y_train)
-    y_test_pred_selected = rf_selected.predict(X_test_selected)
+    rf_selected.fit(X_train_selected_scaled, y_train)
+    y_test_pred_selected = rf_selected.predict(X_test_selected_scaled)
     sel_metrics = calculate_metrics(y_test, y_test_pred_selected)
+
+    # --- Evaluasi hasil training ulang ---
     st.info(f"Hasil training ulang dengan fitur terpilih ({len(selected_features)} fitur):")
     st.write(sel_metrics)
-    # Tampilkan line chart hasil prediksi model baru
+
+    # --- Line chart hasil training ulang ---
     st.write("#### Line Chart: Predicted vs Actual (Test Set, Model Fitur Terpilih)")
     df_line_sel = pd.DataFrame({
         "Actual": y_test.values,
@@ -349,67 +400,23 @@ if selected_features and len(selected_features) > 0:
     st.pyplot(fig_sel)
 
 
-    # --- Tabel Evaluasi Metrik ---
-    st.write("#### Tabel Ringkasan Metrik")
-    eval_table = pd.DataFrame([train_metrics, test_metrics], index=['Train', 'Test'])
-    st.table(eval_table)
-
-    # --- Residual Plot ---
-    st.write("#### Residual Plot (Test Set)")
-    fig4, ax4 = plt.subplots()
-    residuals = y_test - y_test_pred
-    sns.scatterplot(x=range(len(residuals)), y=residuals, ax=ax4)
-    ax4.axhline(0, color='r', linestyle='--')
-    ax4.set_ylabel("Residual")
-    st.pyplot(fig4)
-
-    # --- Scatter Actual vs Predicted ---
-    st.write("#### Scatter Actual vs Predicted (Test Set)")
-    fig5, ax5 = plt.subplots()
-    ax5.scatter(y_test, y_test_pred, color='teal')
-    ax5.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-    ax5.set_xlabel("Actual")
-    ax5.set_ylabel("Predicted")
-    st.pyplot(fig5)
-
-    # --- Bar Chart: Actual vs Predicted ---
-    st.write("#### Grafik Bar: Prediksi vs Aktual (Test Set)")
-    df_pred = pd.DataFrame({'Actual': y_test.values, 'Predicted': y_test_pred})
-    fig6, ax6 = plt.subplots()
-    df_pred.head(30).plot(kind='bar', ax=ax6)
-    plt.xlabel("Index (sample)")
-    plt.ylabel("Hasil Panen/ton")
-    st.pyplot(fig6)
-
-    # --- Hasil Prediksi Tabel Lengkap (dengan Tahun & Bulan) ---
-    # Line chart Actual vs Predicted pada Data Test
-    st.write("#### Line Chart: Predicted vs Actual (Test Set)")
-    df_line = df_pred_test.reset_index(drop=True)
-    fig_line, ax_line = plt.subplots(figsize=(10,4))
-    ax_line.plot(df_line['Actual'].values, label='Actual', marker='o')
-    ax_line.plot(df_line['Predicted'].values, label='Predicted', marker='o')
-    ax_line.set_xlabel("Index Data Test")
-    ax_line.set_ylabel("Hasil Panen/ton")
-    ax_line.legend()
-    st.pyplot(fig_line)
-
-    test_idx = X_test.index
-    kolom_tambahan = ['Tahun', 'Bulan']
-    kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
-    df_pred_test = pd.DataFrame({
-        **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
-        'Actual': y_test.values,
-        'Predicted': y_test_pred
-    }, index=y_test.index)
-    st.write("### Hasil Prediksi pada Data Test Set")
-    st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
-    csv_pred = df_pred_test.to_csv(index=False).encode()
-    st.download_button(
-        label="Download hasil prediksi test (CSV)",
-        data=csv_pred,
-        file_name="hasil_prediksi_test.csv",
-        mime='text/csv'
-    )
+    # test_idx = X_test.index
+    # kolom_tambahan = ['Tahun', 'Bulan']
+    # kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
+    # df_pred_test = pd.DataFrame({
+    #     **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
+    #     'Actual': y_test.values,
+    #     'Predicted': y_test_pred
+    # }, index=y_test.index)
+    # st.write("### Hasil Prediksi pada Data Test Set")
+    # st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
+    # csv_pred = df_pred_test.to_csv(index=False).encode()
+    # st.download_button(
+    #     label="Download hasil prediksi test (CSV)",
+    #     data=csv_pred,
+    #     file_name="hasil_prediksi_test.csv",
+    #     mime='text/csv'
+    # )
 
 # --- Tentang & Referensi ---
 st.markdown("""
