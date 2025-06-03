@@ -79,7 +79,7 @@ logo_path = "logo usu.png"  # nama file logo yang kamu upload
 
 col_logo, col_title = st.columns([1, 7])
 with col_logo:
-    st.image(logo_path, width=90, output_format="PNG", caption="", use_column_width=False)
+    st.image(logo_path, width=90, output_format="PNG", caption="", use_container_width=False)
 with col_title:
     st.markdown("""
     <h1 style='margin-bottom:0.2em; font-size:2.2em; color:#0A3871'>
