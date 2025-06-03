@@ -14,45 +14,98 @@ import streamlit as st
 # ===== Logo dan Judul =====
 logo_path = "logo usu.png"  # path hasil upload kamu
 
-col1, col2 = st.columns([1, 7])
-with col1:
-    st.image(logo_path, width=90)
-with col2:
-    st.markdown("""
-    <h1 style='margin-bottom:0.2em; font-size:2.2em; color:#0A3871'>
-        Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest
-    </h1>
-    """, unsafe_allow_html=True)
-
-# ===== Identitas Mahasiswa =====
 st.markdown("""
-<div style='
+<style>
+.header-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 0.1em;
+    margin-top: 1em;
+}
+.header-logo {
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid #0A3871;
+    box-shadow: 0 3px 10px rgba(50,50,50,0.09);
+    width: 85px;
+    height: 85px;
+    object-fit: cover;
+    background: white;
+}
+@media (max-width: 600px) {
+    .header-row { flex-direction: column; align-items: flex-start; }
+    .header-logo { width: 70px; height: 70px;}
+}
+.header-title {
+    font-size: 2.1em !important;
+    font-weight: 800 !important;
+    color: #12366e;
+    line-height: 1.18;
+    margin-bottom: 0.10em;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+.identitas-card {
     background: linear-gradient(90deg, #e6eafc 60%, #d0e0f5 100%);
-    border-radius: 12px; 
-    padding: 15px 25px 10px 25px; 
+    border-radius: 13px;
+    padding: 20px 30px 16px 28px;
+    margin-bottom: 14px;
     margin-top: 0px;
-    margin-bottom: 10px;
-    box-shadow: 0 4px 18px 0 rgba(10,56,113,0.07);
-'>
-    <span style='font-size:1.1em; color:#1C3879; font-weight:bold'>
-        Nama&nbsp;&nbsp;&nbsp;&nbsp; : <span style='font-weight:normal'>Sarmida Uli Sinaga</span><br>
-        NIM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span style='font-weight:normal'>211402071</span><br>
-        Program Studi : <span style='font-weight:normal'>Teknologi Informasi</span><br>
-        Universitas Sumatera Utara
-    </span>
+    box-shadow: 0 4px 22px 0 rgba(10,56,113,0.09);
+    font-size:1.08em;
+}
+.identitas-card b {
+    color: #143665;
+    letter-spacing: 0.01em;
+}
+.identitas-card span {
+    color: #212d4e;
+}
+.petunjuk-card {
+    background-color: #f6fafd;
+    border-radius: 9px;
+    padding: 16px 25px 13px 25px;
+    color: #25304f;
+    margin-bottom: 17px;
+    border-left: 5px solid #3b6ecc;
+}
+.petunjuk-card ul {
+    margin-top:2px; margin-bottom:8px;
+    padding-left: 1.2em;
+}
+.petunjuk-card li { margin-bottom: 2px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown(f"""
+<div class="header-row">
+    <img src="file://{logo_path}" class="header-logo">
+    <div class="header-title">
+        Sistem Prediksi Hasil Panen<br>
+        dengan Whale Optimization + Random Forest
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ===== Petunjuk dan Kontak =====
+st.markdown(f"""
+<div class="identitas-card">
+    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span>Sarmida Uli Sinaga</span><br>
+    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span>211402071</span><br>
+    <b>Program Studi</b> : <span>Teknologi Informasi</span><br>
+    <b>Universitas Sumatera Utara</b>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""
-<div style="background-color:#f5f6fa;padding:17px 25px;border-radius:10px;margin-bottom:15px; color:#343947">
-    <b>Petunjuk:</b> 
-    <ul style="margin-top:2px;margin-bottom:8px">
-      <li>Upload file <b>CSV</b> Anda dengan format yang sesuai (<a href="#" style="color:#2574A9;font-weight:500;text-decoration:underline">download template</a>).</li>
-      <li>Pilih parameter jika diperlukan.</li>
-      <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
+<div class="petunjuk-card">
+    <b>Petunjuk:</b>
+    <ul>
+        <li>Upload file <b>CSV</b> Anda dengan format yang sesuai (<i>download template</i>).</li>
+        <li>Pilih parameter jika diperlukan.</li>
+        <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
     </ul>
-    <b>Kontak:</b> <span style="color:#2574A9">sarmidasinaga@students.usu.ac.id
+    <b>Kontak:</b> <span style="color:#2574A9;">sarmidauli@usu.ac.id</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -286,22 +339,35 @@ if uploaded_file:
     plt.xlabel("Index (sample)")
     plt.ylabel("Hasil Panen/ton")
     st.pyplot(fig6)
+# Ambil index data test pada dataframe asli (pastikan X_test punya index dari df asli)
+test_idx = X_test.index
 
-    # --- Download Hasil Prediksi ---
-    df_pred_full = pd.DataFrame({
-        'Actual': y_test.values,
-        'Predicted': y_test_pred
-    })
-    csv = df_pred_full.to_csv(index=False).encode()
-    st.download_button("Download hasil prediksi (CSV)", csv, file_name="hasil_prediksi.csv")
+# Gabungkan kolom dari df asli yang relevan (misal: Tahun, Bulan, dll)
+kolom_tambahan = ['Tahun', 'Bulan']  # Tambahkan 'ID' atau kolom lain jika ada di df
+
+# Pastikan kolom tersebut ada di df asli
+kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
+
+df_pred_test = pd.DataFrame({
+    **{k: df.loc[test_idx, k].values for k in kolom_tambahan},
+    'Actual': y_test.values,
+    'Predicted': y_test_pred
+}, index=y_test.index)
+
+st.write("### Hasil Prediksi pada Data Test Set")
+st.dataframe(df_pred_test.style.format({'Actual':'{:.2f}','Predicted':'{:.2f}'}), height=350)
+
+csv_pred = df_pred_test.to_csv(index=False).encode()
+st.download_button(
+    label="Download hasil prediksi test (CSV)",
+    data=csv_pred,
+    file_name="hasil_prediksi_test.csv",
+    mime='text/csv'
+)
+
 
     # --- Tentang & Referensi ---
     st.markdown("""
     ---
     <b>About:</b> Sistem ini dikembangkan untuk mendemonstrasikan integrasi Whale Optimization Algorithm (WOA) dengan Random Forest dalam prediksi hasil panen berbasis data.
     
-    <b>Referensi Utama:</b><br>
-    - Mirjalili, S., & Lewis, A. (2016). The Whale Optimization Algorithm. Advances in Engineering Software, 95, 51–67.<br>
-    - Scikit-Learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.<br>
-    - <a href="https://docs.streamlit.io/" target="_blank">Streamlit Documentation</a>
-    """, unsafe_allow_html=True)
