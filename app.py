@@ -67,7 +67,7 @@ st.markdown("""
 }
 .identitas-grid {
     display: grid;
-    grid-template-columns: 180px 1fr;
+    grid-template-columns: 270px 1fr;
     row-gap: 6px;
     align-items: start;
 }
