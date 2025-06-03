@@ -12,7 +12,7 @@ import io
 import streamlit as st
 
 # ===== Logo dan Judul =====
-logo_path = "df31e687-7369-4da9-9681-2bbbe9cd3e49.png"  # path hasil upload kamu
+logo_path = "logo_usu.png"  # path hasil upload kamu
 
 col1, col2 = st.columns([1, 7])
 with col1:
