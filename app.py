@@ -77,20 +77,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="header-row">
-    <img src="file://{logo_path}" class="header-logo">
-    <div class="header-title">
-        Sistem Prediksi Hasil Panen<br>
-        dengan Whale Optimization + Random Forest
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Layout logo & judul pakai Streamlit columns, bukan HTML <img src>
+col_logo, col_title = st.columns([1, 7])
+with col_logo:
+    st.image(logo_path, width=90, output_format="PNG", caption="", use_column_width=False)
+with col_title:
+    st.markdown("""
+    <h1 style='margin-bottom:0.2em; font-size:2.2em; color:#0A3871'>
+        Sistem Prediksi Hasil Panen <br>dengan Whale Optimization + Random Forest
+    </h1>
+    """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class="identitas-card">
-    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span>Sarmida Uli Sinaga</span><br>
-    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span>211402071</span><br>
+    <b>Nama</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        : <span>Sarmida Uli Sinaga</span><br>
+    <b>NIM</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         : <span>211402071</span><br>
     <b>Program Studi</b> : <span>Teknologi Informasi</span><br>
     <b>Universitas Sumatera Utara</b>
 </div>
