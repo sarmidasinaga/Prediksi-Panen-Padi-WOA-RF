@@ -166,13 +166,13 @@ if uploaded_file:
     st.pyplot(fig)
 
     # --- Feature Engineering ---
-    # if 'Bulan' in df.columns:
-    #     df['season'] = df['Bulan'].apply(lambda x: 'dry' if x in [6,7,8,9] else 'wet')
-    #     df['quarter'] = (df['Bulan'] - 1) // 3 + 1
-    # df = df.sort_values(['Tahun', 'Bulan'])
-    # df['yield_lag1'] = df['Hasil Panen/ton'].shift(1)
-    # df['area_lag1'] = df['Luas Panen/ha'].shift(1)
-    # df = df.dropna()
+    if 'Bulan' in df.columns:
+        df['season'] = df['Bulan'].apply(lambda x: 'dry' if x in [6,7,8,9] else 'wet')
+        df['quarter'] = (df['Bulan'] - 1) // 3 + 1
+    df = df.sort_values(['Tahun', 'Bulan'])
+    df['yield_lag1'] = df['Hasil Panen/ton'].shift(1)
+    df['area_lag1'] = df['Luas Panen/ha'].shift(1)
+    df = df.dropna()
 
     # --- Korelasi ---
     numeric_df = df.select_dtypes(include=np.number)
@@ -195,12 +195,12 @@ if uploaded_file:
     X = df[predictor_cols]
     y = df["Hasil Panen/ton"]
     # --- Preprocessing ---
-    # X = df['Tahun', 'Luas Panen/ha','yield_lag1','area_lag1']
-    # y = df['Hasil Panen/ton']
-    # if 'season' in X.columns:
-    #     le = LabelEncoder()
-    #     X['season_encoded'] = le.fit_transform(X['season'])
-    #     X = X.drop(['season'], axis=1)
+    X = df.drop(['Hasil Panen/ton'], axis=1)
+    y = df['Hasil Panen/ton']
+    if 'season' in X.columns:
+        le = LabelEncoder()
+        X['season_encoded'] = le.fit_transform(X['season'])
+        X = X.drop(['season'], axis=1)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=split_ratio, random_state=42
