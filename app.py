@@ -192,7 +192,7 @@ if uploaded_file:
         max_depth_range = st.slider("Rentang max_depth", min_value=2, max_value=20, value=(3,12), step=1)
 
     # --- Preprocessing ---
-    X = df.drop(['Hasil Panen/ton'], axis=1)
+    X = df['Tahun', 'Luas Panen/ha','yield_lag1','area_lag1']
     y = df['Hasil Panen/ton']
     if 'season' in X.columns:
         le = LabelEncoder()
