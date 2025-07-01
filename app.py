@@ -191,9 +191,6 @@ if uploaded_file:
         n_estimators_range = st.slider("Rentang n_estimators", min_value=50, max_value=500, value=(50,200), step=10)
         max_depth_range = st.slider("Rentang max_depth", min_value=2, max_value=20, value=(3,12), step=1)
 
-    predictor_cols = ["Tahun", "Luas Panen/ha", "yield_lag1", "area_lag1"]
-    X = df[predictor_cols]
-    y = df["Hasil Panen/ton"]
     # --- Preprocessing ---
     X = df.drop(['Hasil Panen/ton'], axis=1)
     y = df['Hasil Panen/ton']
