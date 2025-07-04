@@ -105,6 +105,15 @@ st.markdown("""
     padding-left: 1.2em;
 }
 .petunjuk-card li { margin-bottom: 2px; }
+.prediction-card {
+    background: linear-gradient(90deg, #e8f5e8 60%, #d4edda 100%);
+    border-radius: 13px;
+    padding: 20px 30px 16px 28px;
+    margin-bottom: 14px;
+    margin-top: 20px;
+    box-shadow: 0 4px 22px 0 rgba(40,167,69,0.09);
+    border-left: 5px solid #28a745;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -129,6 +138,7 @@ st.markdown("""
         <li>Upload file <b>CSV</b> Anda dengan format yang sesuai (<i>download template</i>).</li>
         <li>Pilih parameter jika diperlukan.</li>
         <li>Setelah data diproses, Anda dapat melihat statistik, visualisasi, dan hasil prediksi.</li>
+        <li>Gunakan menu <b>Prediksi Data Baru</b> untuk memprediksi hasil panen pada data baru.</li>
     </ul>
 </div>
 """, unsafe_allow_html=True)
@@ -138,6 +148,18 @@ with open("template_data.csv", "rb") as f:
     st.download_button("Download template data CSV", f, file_name="template_data.csv")
 
 st.markdown("---")
+
+# Inisialisasi session state untuk menyimpan model dan scaler
+if 'model_trained' not in st.session_state:
+    st.session_state.model_trained = False
+if 'final_rf' not in st.session_state:
+    st.session_state.final_rf = None
+if 'scaler' not in st.session_state:
+    st.session_state.scaler = None
+if 'feature_columns' not in st.session_state:
+    st.session_state.feature_columns = None
+if 'label_encoder' not in st.session_state:
+    st.session_state.label_encoder = None
 
 uploaded_file = st.file_uploader("Upload data panen (CSV):", type="csv")
 
@@ -194,6 +216,9 @@ if uploaded_file:
     # --- Preprocessing ---
     X = df.drop(['Hasil Panen/ton'], axis=1)
     y = df['Hasil Panen/ton']
+    
+    # Simpan informasi label encoder untuk prediksi nanti
+    le = None
     if 'season' in X.columns:
         le = LabelEncoder()
         X['season_encoded'] = le.fit_transform(X['season'])
@@ -327,6 +352,13 @@ if uploaded_file:
     train_metrics = calculate_metrics(y_train, y_train_pred)
     test_metrics = calculate_metrics(y_test, y_test_pred)
     
+    # Simpan model dan scaler ke session state
+    st.session_state.final_rf = final_rf
+    st.session_state.scaler = scaler
+    st.session_state.feature_columns = X.columns.tolist()
+    st.session_state.label_encoder = le
+    st.session_state.model_trained = True
+    
     # --- Feature Importance ---
     feat_imp = pd.DataFrame({'feature': X.columns, 'importance': final_rf.feature_importances_}).sort_values('importance', ascending=False)
     st.write("#### Feature Importance")
@@ -338,7 +370,7 @@ if uploaded_file:
     st.table(eval_table)
     
     # --- Residual Plot (Model Utama) ---
-    st.write("#### Residual Plot (Test Set")
+    st.write("#### Residual Plot (Test Set)")
     fig4, ax4 = plt.subplots()
     residuals = y_test - y_test_pred
     sns.scatterplot(x=range(len(residuals)), y=residuals, ax=ax4)
@@ -374,7 +406,8 @@ if uploaded_file:
     ax_line.set_ylabel("Hasil Panen/ton")
     ax_line.legend()
     st.pyplot(fig_line)
-    #hasil tabel dan downloadable prediction
+    
+    # hasil tabel dan downloadable prediction
     test_idx = X_test.index
     kolom_tambahan = ['Tahun', 'Bulan']
     kolom_tambahan = [k for k in kolom_tambahan if k in df.columns]
@@ -392,6 +425,147 @@ if uploaded_file:
         file_name="hasil_prediksi_test.csv",
         mime='text/csv'
     )
+
+# --- MENU PREDIKSI DATA BARU ---
+if st.session_state.model_trained:
+    st.markdown("---")
+    st.markdown("""
+    <div class="prediction-card">
+        <h3 style="color: #155724; margin-bottom: 10px;">🔮 Prediksi Data Baru</h3>
+        <p style="color: #155724; margin-bottom: 0;">Upload file CSV baru untuk memprediksi hasil panen. File harus berisi kolom: Tahun, Bulan, Luas Panen/ha (tanpa kolom Hasil Panen/ton).</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Template untuk prediksi
+    st.markdown("#### Template Data Prediksi")
+    template_predict = pd.DataFrame({
+        'Tahun': [2024, 2024, 2024],
+        'Bulan': [1, 2, 3],
+        'Luas Panen/ha': [100, 120, 110]
+    })
+    st.write("Contoh format data prediksi:")
+    st.dataframe(template_predict)
+    
+    # Download template prediksi
+    csv_template = template_predict.to_csv(index=False).encode()
+    st.download_button(
+        label="Download template prediksi CSV",
+        data=csv_template,
+        file_name="template_prediksi.csv",
+        mime='text/csv'
+    )
+    
+    # Upload file untuk prediksi
+    predict_file = st.file_uploader("Upload data untuk prediksi (CSV):", type="csv", key="predict_file")
+    
+    if predict_file:
+        try:
+            # Load data prediksi
+            df_predict = pd.read_csv(predict_file)
+            st.write("#### Preview Data Prediksi")
+            st.dataframe(df_predict)
+            
+            # Validasi kolom yang diperlukan
+            required_predict_cols = ['Tahun', 'Bulan', 'Luas Panen/ha']
+            missing_predict_cols = [col for col in required_predict_cols if col not in df_predict.columns]
+            
+            if missing_predict_cols:
+                st.error(f"Kolom berikut tidak ada dalam data prediksi: {missing_predict_cols}")
+            else:
+                # Proses feature engineering sama seperti data training
+                if 'Bulan' in df_predict.columns:
+                    df_predict['season'] = df_predict['Bulan'].apply(lambda x: 'dry' if x in [6,7,8,9] else 'wet')
+                    df_predict['quarter'] = (df_predict['Bulan'] - 1) // 3 + 1
+                
+                # Untuk lag features, kita bisa menggunakan nilai rata-rata atau nilai terakhir dari data training
+                # Di sini kita akan menggunakan strategi sederhana dengan mengisi nilai rata-rata
+                df_predict['yield_lag1'] = df['Hasil Panen/ton'].mean()  # Menggunakan rata-rata hasil panen dari data training
+                df_predict['area_lag1'] = df_predict['Luas Panen/ha'].shift(1)
+                df_predict['area_lag1'] = df_predict['area_lag1'].fillna(df_predict['Luas Panen/ha'].mean())
+                
+                # Encode season jika ada
+                if 'season' in df_predict.columns and st.session_state.label_encoder:
+                    df_predict['season_encoded'] = st.session_state.label_encoder.transform(df_predict['season'])
+                    df_predict = df_predict.drop(['season'], axis=1)
+                
+                # Pastikan kolom sesuai dengan yang digunakan saat training
+                X_predict = df_predict[st.session_state.feature_columns]
+                
+                # Scaling
+                X_predict_scaled = st.session_state.scaler.transform(X_predict)
+                
+                # Prediksi
+                predictions = st.session_state.final_rf.predict(X_predict_scaled)
+                
+                # Tampilkan hasil prediksi
+                st.write("#### Hasil Prediksi")
+                df_result = df_predict[['Tahun', 'Bulan', 'Luas Panen/ha']].copy()
+                df_result['Prediksi Hasil Panen/ton'] = predictions
+                
+                st.dataframe(df_result.style.format({'Prediksi Hasil Panen/ton': '{:.2f}'}))
+                
+                # Visualisasi hasil prediksi
+                st.write("#### Visualisasi Prediksi")
+                fig_pred, ax_pred = plt.subplots(figsize=(10, 6))
+                
+                # Bar chart prediksi
+                x_pos = range(len(df_result))
+                bars = ax_pred.bar(x_pos, predictions, color='lightgreen', alpha=0.7)
+                ax_pred.set_xlabel('Index Data')
+                ax_pred.set_ylabel('Prediksi Hasil Panen/ton')
+                ax_pred.set_title('Prediksi Hasil Panen')
+                
+                # Tambahkan label pada bar
+                for i, bar in enumerate(bars):
+                    height = bar.get_height()
+                    ax_pred.text(bar.get_x() + bar.get_width()/2., height,
+                               f'{height:.2f}',
+                               ha='center', va='bottom')
+                
+                st.pyplot(fig_pred)
+                
+                # Line chart jika ada lebih dari 1 data
+                if len(df_result) > 1:
+                    fig_line_pred, ax_line_pred = plt.subplots(figsize=(10, 5))
+                    ax_line_pred.plot(predictions, marker='o', color='green', linewidth=2)
+                    ax_line_pred.set_xlabel('Index Data')
+                    ax_line_pred.set_ylabel('Prediksi Hasil Panen/ton')
+                    ax_line_pred.set_title('Trend Prediksi Hasil Panen')
+                    ax_line_pred.grid(True, alpha=0.3)
+                    st.pyplot(fig_line_pred)
+                
+                # Statistik prediksi
+                st.write("#### Statistik Prediksi")
+                pred_stats = pd.DataFrame({
+                    'Metrik': ['Rata-rata', 'Median', 'Minimum', 'Maksimum', 'Std Deviasi'],
+                    'Nilai': [
+                        predictions.mean(),
+                        np.median(predictions),
+                        predictions.min(),
+                        predictions.max(),
+                        predictions.std()
+                    ]
+                })
+                st.dataframe(pred_stats.style.format({'Nilai': '{:.2f}'}))
+                
+                # Download hasil prediksi
+                csv_result = df_result.to_csv(index=False).encode()
+                st.download_button(
+                    label="Download hasil prediksi (CSV)",
+                    data=csv_result,
+                    file_name="hasil_prediksi_baru.csv",
+                    mime='text/csv'
+                )
+                
+                st.success(f"Prediksi berhasil! {len(df_result)} data telah diprediksi.")
+                
+        except Exception as e:
+            st.error(f"Terjadi error saat memproses data prediksi: {str(e)}")
+            st.write("Pastikan format data sesuai dengan template yang disediakan.")
+
+else:
+    st.markdown("---")
+    st.info("⚠️ Silakan upload dan proses data training terlebih dahulu untuk mengaktifkan fitur prediksi.")
     
 # --- Tentang & Referensi ---
 st.markdown("""
