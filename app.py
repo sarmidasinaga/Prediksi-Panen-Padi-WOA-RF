@@ -10,6 +10,20 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import random
 import io
 
+# Inisialisasi session state di awal
+if 'model_trained' not in st.session_state:
+    st.session_state.model_trained = False
+if 'final_rf' not in st.session_state:
+    st.session_state.final_rf = None
+if 'scaler' not in st.session_state:
+    st.session_state.scaler = None
+if 'feature_columns' not in st.session_state:
+    st.session_state.feature_columns = None
+if 'label_encoder' not in st.session_state:
+    st.session_state.label_encoder = None
+if 'training_data_mean' not in st.session_state:
+    st.session_state.training_data_mean = None
+
 logo_path = "88f2784f-5850-4fbc-8234-0ed3f75fc6b9.png" # Nama file logo hasil upload terbaru
 
 col1, col2 = st.columns([1, 7])
@@ -114,6 +128,15 @@ st.markdown("""
     box-shadow: 0 4px 22px 0 rgba(40,167,69,0.09);
     border-left: 5px solid #28a745;
 }
+.success-card {
+    background: linear-gradient(90deg, #d1ecf1 60%, #bee5eb 100%);
+    border-radius: 13px;
+    padding: 20px 30px 16px 28px;
+    margin-bottom: 14px;
+    margin-top: 20px;
+    box-shadow: 0 4px 22px 0 rgba(23,162,184,0.09);
+    border-left: 5px solid #17a2b8;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -147,19 +170,16 @@ st.markdown("""
 with open("template_data.csv", "rb") as f:
     st.download_button("Download template data CSV", f, file_name="template_data.csv")
 
-st.markdown("---")
+# Status model
+if st.session_state.model_trained:
+    st.markdown("""
+    <div class="success-card">
+        <h4 style="color: #0c5460; margin-bottom: 5px;">✅ Model Sudah Siap</h4>
+        <p style="color: #0c5460; margin-bottom: 0;">Model telah dilatih dan siap untuk prediksi data baru.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Inisialisasi session state untuk menyimpan model dan scaler
-if 'model_trained' not in st.session_state:
-    st.session_state.model_trained = False
-if 'final_rf' not in st.session_state:
-    st.session_state.final_rf = None
-if 'scaler' not in st.session_state:
-    st.session_state.scaler = None
-if 'feature_columns' not in st.session_state:
-    st.session_state.feature_columns = None
-if 'label_encoder' not in st.session_state:
-    st.session_state.label_encoder = None
+st.markdown("---")
 
 uploaded_file = st.file_uploader("Upload data panen (CSV):", type="csv")
 
@@ -357,6 +377,7 @@ if uploaded_file:
     st.session_state.scaler = scaler
     st.session_state.feature_columns = X.columns.tolist()
     st.session_state.label_encoder = le
+    st.session_state.training_data_mean = y.mean()
     st.session_state.model_trained = True
     
     # --- Feature Importance ---
@@ -425,17 +446,19 @@ if uploaded_file:
         file_name="hasil_prediksi_test.csv",
         mime='text/csv'
     )
+    
+    st.success("🎉 Model berhasil dilatih! Sekarang Anda dapat menggunakan menu prediksi data baru di bawah.")
 
 # --- MENU PREDIKSI DATA BARU ---
+st.markdown("---")
+st.markdown("""
+<div class="prediction-card">
+    <h3 style="color: #155724; margin-bottom: 10px;">🔮 Prediksi Data Baru</h3>
+    <p style="color: #155724; margin-bottom: 0;">Upload file CSV baru untuk memprediksi hasil panen. File harus berisi kolom: Tahun, Bulan, Luas Panen/ha (tanpa kolom Hasil Panen/ton).</p>
+</div>
+""", unsafe_allow_html=True)
+
 if st.session_state.model_trained:
-    st.markdown("---")
-    st.markdown("""
-    <div class="prediction-card">
-        <h3 style="color: #155724; margin-bottom: 10px;">🔮 Prediksi Data Baru</h3>
-        <p style="color: #155724; margin-bottom: 0;">Upload file CSV baru untuk memprediksi hasil panen. File harus berisi kolom: Tahun, Bulan, Luas Panen/ha (tanpa kolom Hasil Panen/ton).</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Template untuk prediksi
     st.markdown("#### Template Data Prediksi")
     template_predict = pd.DataFrame({
@@ -477,9 +500,8 @@ if st.session_state.model_trained:
                     df_predict['season'] = df_predict['Bulan'].apply(lambda x: 'dry' if x in [6,7,8,9] else 'wet')
                     df_predict['quarter'] = (df_predict['Bulan'] - 1) // 3 + 1
                 
-                # Untuk lag features, kita bisa menggunakan nilai rata-rata atau nilai terakhir dari data training
-                # Di sini kita akan menggunakan strategi sederhana dengan mengisi nilai rata-rata
-                df_predict['yield_lag1'] = df['Hasil Panen/ton'].mean()  # Menggunakan rata-rata hasil panen dari data training
+                # Untuk lag features, gunakan nilai rata-rata dari data training
+                df_predict['yield_lag1'] = st.session_state.training_data_mean
                 df_predict['area_lag1'] = df_predict['Luas Panen/ha'].shift(1)
                 df_predict['area_lag1'] = df_predict['area_lag1'].fillna(df_predict['Luas Panen/ha'].mean())
                 
@@ -557,14 +579,13 @@ if st.session_state.model_trained:
                     mime='text/csv'
                 )
                 
-                st.success(f"Prediksi berhasil! {len(df_result)} data telah diprediksi.")
+                st.success(f"✅ Prediksi berhasil! {len(df_result)} data telah diprediksi.")
                 
         except Exception as e:
             st.error(f"Terjadi error saat memproses data prediksi: {str(e)}")
             st.write("Pastikan format data sesuai dengan template yang disediakan.")
 
 else:
-    st.markdown("---")
     st.info("⚠️ Silakan upload dan proses data training terlebih dahulu untuk mengaktifkan fitur prediksi.")
     
 # --- Tentang & Referensi ---
